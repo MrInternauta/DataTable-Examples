@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Curso Datattables</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+  
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <div class="col-md-12">
+            <h1>Ejemplos Datatables</h1>
+            <table class="table" id="UsersTable">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+            </table>
+
+            <hr>
+
+            <table class="table" id="ProductsTable">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                    </tr>
+                </thead>
+            </table>
+
+
+        </div>
+    </div>
+
+
+
+    <script
+    src="https://code.jquery.com/jquery-3.3.1.js"
+    integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+    crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+
+
+<script>
+        jQuery(document).ready( function ($) {
+            //Extender  a todas las Databales de esta pagina 
+            $.extend(true, $.fn.DataTable.defaults, {
+                // Herramientas
+                info: true,
+                paging: true,
+                ordering:true,
+                searching: true,
+                scrollY:  '40vh',
+                language: {
+                    url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Spanish.json"
+                }
+            });
+            
+            $('#UsersTable').DataTable({
+
+                ajax: {
+                    url: "http://localhost/Datatables/users.json"
+                },
+                columns: [
+                        {
+                            name: "id",
+                            data: "id"
+                        },
+                        {
+                            name: "name",
+                            data: "name"
+                        },
+                        {
+                            name: "email",
+                            data: "email",
+                            //Herramientas por columna
+                            visible: true, searchable: false,
+                            render: function(data, type, row) {
+                                return `(${row.id}) ${data} `
+                            }
+                        }
+                    ],
+                    // ordenar
+                columnDefs: [
+                        { target: [0], orderData: [0, 1] },
+                        { target: [1], orderData: [1, 2]},
+                        { target: [2], orderData: [0, 1, 2]}
+                ]
+                
+            });
+
+
+                $('#ProductsTable').DataTable({
+                stateSave: true,
+                paging: false,
+                ajax: {
+                    url: "http://localhost/Datatables/products.json"
+                },
+                columns: [
+                    {
+                        name: "id",
+                        data: "id"
+                    },
+                    {
+                        name: "name",
+                        data: "name"
+                    },
+                    {
+                        name: "price",
+                        data: "price"
+                    }
+                ]
+
+            });
+
+
+        } );
+    </script>
+</body>
+</html>
