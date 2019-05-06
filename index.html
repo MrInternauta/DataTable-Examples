@@ -11,6 +11,15 @@
             color: lightgreen;
             background: black;
         }
+        
+        td.details-control {
+            background: url('imgs/details_open.png') no-repeat center center;
+            cursor: pointer;
+        }
+        
+        tr.shown td.details-control {
+            background: url('imgs/details_close.png') no-repeat center center;
+        }
     </style>
 </head>
 
@@ -67,6 +76,25 @@
                     </tr>
                 </tfoot>
             </table>
+            <hr>
+            <div class="well">
+
+                <table class="table" id="CompaniesTable">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Id</th>
+                            <th>Nombre</th>
+                            <th>Inicio</th>
+                        </tr>
+                    </thead>
+                </table>
+
+            </div>
+
+
+            <hr>
+
 
 
         </div>
@@ -81,6 +109,7 @@
 
 
     <script>
+
         var users = [{
             "id": 1,
             "name": "Opaline",
@@ -228,7 +257,13 @@
                 }
 
             });
-            $('#EmployeesTable').DataTable({
+
+            // Campos de busqueda en el Tfoot
+            $("#EmployeesTable tfoot th").each(function() {
+                var title = $(this).text();
+                $(this).html('<input type="text" placeholder="Buscar por ' + title + '">')
+            })
+            var EmployeesTable = $('#EmployeesTable').DataTable({
                 order: [
                     [2, 'asc']
                 ],
@@ -278,10 +313,70 @@
 
 
             });
-
+            // Campos de busqueda en el Tfoot
+            EmployeesTable.columns().every(function() {
+                var that = this;
+                $("input", this.footer()).on('keyup change', function() {
+                    if (that.search() !== this.value) {
+                        that
+                            .column($(this).parent().index() + ':visible')
+                            .search(this.value).draw();
+                    }
+                })
+            })
 
 
         });
+        var companiesTable  = $('#CompaniesTable').DataTable({
+
+            ajax: {
+                url: "http://localhost:8080/DataTable-Examples/companies.json"
+            },
+
+            columns: [{
+                "className": "details-control",
+                "orderable": false,
+                "data": null,
+                "defaultContent": ''
+            }, {
+                name: "id",
+                data: "id"
+            }, {
+                name: "name",
+                data: "name"
+            }, {
+                name: "starts",
+                data: "starts",
+            }],
+
+
+        });
+                // Para mostrar descripcion 
+        function format(params) {
+            return `
+            <table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">
+                    <tr>
+                        <td>Descripción</td>
+                        <td>${params.description}</td>
+                    </tr>
+                </table>
+            `
+        }
+        //Mostrar u ocultar descripcion
+        $("#CompaniesTable tbody").on("click", "td.details-control", function(){
+            let tr = $(this).closest('tr'); //Obtiene el primero
+            let row = companiesTable.row(tr); // Obtiene la fila
+            //Si esta mostrada
+            if(row.child.isShown()){
+                //oculta
+                row.child.hide();
+                tr.removeClass('shown')
+            }else{
+                row.child(format(row.data())).show();
+                tr.addClass("shown");
+            }
+            
+        })
     </script>
 </body>
 
