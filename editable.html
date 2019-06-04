@@ -1,0 +1,126 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Curso Datatables</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.2.3/css/select.dataTables.min.css">
+</head>
+<body>
+<div class="container">
+    <div class="col-md-12">
+        <h1 class="text-center text-muted">Curso Avanzado Datatables (Editable)</h1>
+        <div class="well">
+            <table class="table" id="editable-table">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="updateCourse">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+<script>
+    jQuery(document).ready(function () {
+        let modal = jQuery("#editModal");
+        $.extend(true, $.fn.dataTable.defaults, {
+            info: true,
+            paging: true,
+            ordering: true,
+            searching: true,
+            language: {
+                url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+            },
+            lengthMenu: [
+                [10, 20, 50, 100, 500, -1], [10, 20, 50, 100, 500, 'Todos']
+            ],
+        });
+
+        const editableTable = $("#editable-table").DataTable({
+            ajax: "http://localhost:5000/coursesJson.php",
+            stateSave: false,
+            paging: true,
+            processing: true,
+            serverSide: true,
+            columns: [
+                {name: "id", data: "id"},
+                {name: "name", data: "name"},
+                {name: "description", data: "description"},
+                {name: "actions", render: function ( data, type, row ) {
+                    return `
+                        <a href="#" class="editCourse btn btn-warning" data-row='${JSON.stringify(row)}'>Editar</a>
+                    `
+                }},
+            ],
+        });
+
+        jQuery(document).on("click", ".editCourse", function () {
+            const row = $(this).data("row");
+            modal.find('.modal-title').text('Editar');
+            modal.find('#updateCourse').text('Editar').show();
+
+            let $form = $("<form id='editCourse'></form>");
+            $form.append(`<input type="hidden" name="course_id" value="${row.id}" />`);
+            $form.append(`<input type="text" class="form-control" name="course_name" value="${row.name}" /><hr />`);
+            $form.append(`<textarea class="form-control" style="resize: none;" class="form-control" rows="4" name="course_description">${row.description}</textarea>`);
+            modal.find(".modal-body").html($form);
+
+            modal.modal();
+        });
+
+        jQuery(document).on("click", "#updateCourse", function () {
+            jQuery.ajax({
+                url: 'http://localhost:5000/editCourse.php',
+                type: 'POST',
+                data: {
+                    course: $("#editCourse").serialize()
+                },
+                success: (res) => {
+                    const response = JSON.parse(res);
+                    if(response.res === "success") {
+                        modal.find("#updateCourse").hide();
+                        modal.find(".modal-body").html("<div class='alert alert-success'>Curso actualizado correctamente, cerrando modal...</div>")
+                        setTimeout(() => {
+                            editableTable.ajax.reload(null, false);
+                            modal.modal('hide');
+                        }, 2000);
+                    } else {
+                        modal.find(".modal-body").html("<div class='alert alert-danger'>Error actualizando el curso</div>")
+                    }
+                }
+            })
+        })
+    })
+
+</script>
+</body>
